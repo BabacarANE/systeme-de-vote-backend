@@ -23,7 +23,7 @@ class BureauDeVoteController extends BaseController
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'centre_de_vote_id' => 'required|exists:centres_de_vote,id',
+            'centre_de_vote_id' => 'required|exists:centre_de_votes,id',
             'nom' => 'required|string|max:100',
             'statut' => 'required|in:ACTIF,INACTIF',
             'nombre_inscrits' => 'required|integer|min:1'

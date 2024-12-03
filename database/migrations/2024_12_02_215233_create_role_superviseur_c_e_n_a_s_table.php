@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('role_superviseur_cenas', function (Blueprint $table) {
+        Schema::create('role_superviseur_c_e_n_a_s', function (Blueprint $table) {
             $table->id();
             $table->foreignId('role_utilisateur_id')->constrained('role_utilisateurs')->onDelete('cascade');
             $table->string('code')->unique();
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('role_superviseur_cenas');
+        Schema::dropIfExists('role_superviseur_c_e_n_a_s');
     }
 };

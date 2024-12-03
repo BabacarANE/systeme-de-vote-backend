@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('affectations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('bureau_de_vote_id')->constrained('bureaux_de_vote')->onDelete('cascade');
-            $table->foreignId('role_personnel_bv_id')->constrained('role_personnel_bvs')->onDelete('cascade');
+            $table->foreignId('bureau_de_vote_id')->constrained('bureau_de_votes')->onDelete('cascade');
+            $table->foreignId('role_personnel_bv_id')->constrained('role_personnel_b_v_s')->onDelete('cascade');
             $table->foreignId('election_id')->constrained('elections')->onDelete('cascade');
             $table->string('code_role');
             $table->date('date_debut');

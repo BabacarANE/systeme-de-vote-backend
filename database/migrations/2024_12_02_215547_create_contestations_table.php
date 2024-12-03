@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('contestations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('resultat_bureau_vote_id')->constrained('resultats_bureau_vote')->onDelete('cascade');
+            $table->foreignId('resultat_bureau_vote_id')->constrained('resultat_bureau_votes')->onDelete('cascade');
             $table->foreignId('role_representant_id')->constrained('role_representants')->onDelete('cascade');
             $table->foreignId('role_candidat_id')->constrained('role_candidats')->onDelete('cascade');
             $table->text('motif');

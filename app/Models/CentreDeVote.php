@@ -30,4 +30,5 @@ class CentreDeVote extends Model
     {
         return $this->hasMany(BureauDeVote::class);
     }
+    protected $table = 'centre_de_votes';
 }

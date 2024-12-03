@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('journal_votes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('bureau_de_vote_id')->constrained('bureaux_de_vote')->onDelete('cascade');
+            $table->foreignId('bureau_de_vote_id')->constrained('bureau_de_votes')->onDelete('cascade');
             $table->string('numero_electeur');
             $table->timestamp('horodatage');
             $table->string('ip_address')->nullable();

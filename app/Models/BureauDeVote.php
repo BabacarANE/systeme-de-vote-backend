@@ -45,4 +45,6 @@ class BureauDeVote extends Model
     {
         return $this->hasMany(JournalVote::class);
     }
+
+    protected $table = 'bureau_de_votes';
 }

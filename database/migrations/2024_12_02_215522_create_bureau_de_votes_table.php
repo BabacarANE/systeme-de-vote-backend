@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('bureaux_de_vote', function (Blueprint $table) {
+        Schema::create('bureau_de_votes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('centre_de_vote_id')->constrained('centres_de_vote')->onDelete('cascade');
+            $table->foreignId('centre_de_vote_id')->constrained('centre_de_votes')->onDelete('cascade');
             $table->string('nom');
             $table->string('statut');
             $table->integer('nombre_inscrits');
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bureaux_de_vote');
+        Schema::dropIfExists('bureau_de_votes');
     }
 };

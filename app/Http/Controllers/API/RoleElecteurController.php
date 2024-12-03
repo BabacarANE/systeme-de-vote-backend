@@ -57,4 +57,50 @@ class RoleElecteurController extends BaseController
         $electeur->delete();
         return $this->sendResponse(null, 'Électeur supprimé avec succès.');
     }
+
+    public function verifierElecteur($numeroElecteur)
+    {
+        $electeur = RoleElecteur::where('numero_electeur', $numeroElecteur)
+            ->with(['personne', 'listeElectorale.bureauDeVote.centreDeVote.commune'])
+            ->first();
+
+        if (!$electeur) {
+            return $this->sendError(
+                'Électeur non trouvé',
+                ['message' => 'Aucun électeur ne correspond à ce numéro.'],
+                404
+            );
+        }
+
+        // Préparer les informations pertinentes
+        $data = [
+            'electeur' => [
+                'numero' => $electeur->numero_electeur,
+                'nom' => $electeur->personne->nom,
+                'prenom' => $electeur->personne->prenom,
+                'date_naissance' => $electeur->personne->date_naissance,
+            ],
+            'statut_vote' => $electeur->a_voter,
+            'lieu_vote' => null
+        ];
+
+        // Ajouter les informations sur le lieu de vote si disponibles
+        if ($electeur->listeElectorale) {
+            $data['lieu_vote'] = [
+                'bureau_vote' => [
+                    'nom' => $electeur->listeElectorale->bureauDeVote->nom,
+                    'numero' => $electeur->listeElectorale->bureauDeVote->id
+                ],
+                'centre_vote' => [
+                    'nom' => $electeur->listeElectorale->bureauDeVote->centreDeVote->nom,
+                    'adresse' => $electeur->listeElectorale->bureauDeVote->centreDeVote->adresse
+                ],
+                'commune' => [
+                    'nom' => $electeur->listeElectorale->bureauDeVote->centreDeVote->commune->nom
+                ]
+            ];
+        }
+
+        return $this->sendResponse($data, 'Informations de l\'électeur récupérées avec succès.');
+    }
 }

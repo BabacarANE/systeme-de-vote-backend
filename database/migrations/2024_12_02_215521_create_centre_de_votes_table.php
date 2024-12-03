@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('centres_de_vote', function (Blueprint $table) {
+        Schema::create('centre_de_votes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('commune_id')->constrained('communes')->onDelete('cascade');
             $table->string('nom');
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('centres_de_vote');
+        Schema::dropIfExists('centre_de_votes');
     }
 };
