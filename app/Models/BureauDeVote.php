@@ -14,11 +14,15 @@ class BureauDeVote extends Model
         'centre_de_vote_id',
         'nom',
         'statut',
-        'nombre_inscrits'
+        'nombre_inscrits',
+        'heure_ouverture',
+        'heure_fermeture'
     ];
 
     protected $casts = [
-        'nombre_inscrits' => 'integer'
+        'nombre_inscrits' => 'integer',
+        'heure_ouverture' => 'datetime',
+        'heure_fermeture' => 'datetime'
     ];
 
     public function centreDeVote()

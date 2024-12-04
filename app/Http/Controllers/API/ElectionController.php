@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Models\BureauDeVote;
 use App\Models\Election;
+use App\Models\ResultatBureauVote;
+use App\Models\VoteCandidat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ElectionController extends BaseController
@@ -140,9 +144,49 @@ class ElectionController extends BaseController
             );
         }
 
-        $election->update(['statut' => 'EN_COURS']);
+        DB::beginTransaction();
+        try {
+            // Récupérer toutes les candidatures validées pour cette élection
+            $candidaturesValidees = $election->candidatures()
+                ->where('statut', 'VALIDEE')
+                ->get();
 
-        return $this->sendResponse($election, 'Élection démarrée avec succès.');
+            // Récupérer tous les bureaux de vote
+            $bureauxDeVote = BureauDeVote::where('statut', 'ACTIF')->get();
+
+            // Pour chaque bureau de vote, créer un résultat
+            foreach ($bureauxDeVote as $bureau) {
+                $resultat = ResultatBureauVote::create([
+                    'bureau_de_vote_id' => $bureau->id,
+                    'nombre_votants' => 0,
+                    'bulletins_nuls' => 0,
+                    'bulletins_blancs' => 0,
+                    'suffrages_exprimes' => 0,
+                    'validite' => false
+                ]);
+
+                // Pour chaque candidature validée, créer un vote candidat avec 0 voix
+                foreach ($candidaturesValidees as $candidature) {
+                    VoteCandidat::create([
+                        'resultat_bureau_vote_id' => $resultat->id,
+                        'candidature_id' => $candidature->id,
+                        'nombre_voix' => 0
+                    ]);
+                }
+            }
+
+            // Mettre à jour le statut de l'élection
+            $election->update(['statut' => 'EN_COURS']);
+
+            DB::commit();
+            return $this->sendResponse(
+                $election->load(['candidatures']),  // Enlever 'resultats' ici
+                'Élection démarrée avec succès et résultats initialisés.'
+            );
+        } catch (\Exception $e) {
+            DB::rollback();
+            return $this->sendError('Erreur lors du démarrage', ['message' => $e->getMessage()]);
+        }
     }
 
     public function terminerElection(Election $election)
@@ -219,12 +263,11 @@ class ElectionController extends BaseController
             'progression_depouillement' => 0
         ];
 
-        // Calcul des résultats par bureau de vote
+        // Modifier cette partie pour inclure tous les résultats
         $election->candidatures->each(function ($candidature) use (&$resultats) {
             $totalVoix = $candidature->voteCandidats()
-                ->whereHas('resultatBureauVote', function ($query) {
-                    $query->where('validite', true);
-                })->sum('nombre_voix');
+                ->whereHas('resultatBureauVote')  // Retirer la condition validite
+                ->sum('nombre_voix');
 
             $resultats['resultats_candidats'][] = [
                 'candidat' => $candidature->roleCandidat->personne->nom . ' ' .
@@ -234,13 +277,20 @@ class ElectionController extends BaseController
             ];
         });
 
-        // Calcul des statistiques de participation
-        $bureaux = \App\Models\BureauDeVote::count();
-        $bureauxDecomptes = \App\Models\ResultatBureauVote::where('validite', true)->count();
+        // Calculer les statistiques de participation
+        $resultatsBureaux = ResultatBureauVote::all();  // Prendre tous les résultats
+        $resultats['participation'] = [
+            'bureaux_decomptes' => $resultatsBureaux->count(),
+            'total_inscrits' => BureauDeVote::sum('nombre_inscrits'),
+            'total_votants' => $resultatsBureaux->sum('nombre_votants'),
+            'bulletins_nuls' => $resultatsBureaux->sum('bulletins_nuls'),
+            'bulletins_blancs' => $resultatsBureaux->sum('bulletins_blancs'),
+            'suffrages_exprimes' => $resultatsBureaux->sum('suffrages_exprimes')
+        ];
 
-        $resultats['participation']['bureaux_decomptes'] = $bureauxDecomptes;
+        $bureaux = BureauDeVote::count();
         $resultats['progression_depouillement'] = $bureaux > 0
-            ? round(($bureauxDecomptes / $bureaux) * 100, 2)
+            ? round(($resultatsBureaux->count() / $bureaux) * 100, 2)
             : 0;
 
         return $this->sendResponse($resultats, 'Résultats provisoires récupérés avec succès.');

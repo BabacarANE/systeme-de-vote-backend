@@ -22,8 +22,8 @@ class AffectationController extends BaseController
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'bureau_de_vote_id' => 'required|exists:bureaux_de_vote,id',
-            'role_personnel_bv_id' => 'required|exists:role_personnel_bvs,id',
+            'bureau_de_vote_id' => 'required|exists:bureau_de_votes,id',
+            'role_personnel_bv_id' => 'required|exists:role_personnel_b_v_s,id',
             'election_id' => 'required|exists:elections,id',
             'code_role' => 'required|string',
             'date_debut' => 'required|date',

@@ -19,7 +19,8 @@ class RoleElecteurController extends BaseController
         $validator = Validator::make($request->all(), [
             'personne_id' => 'required|exists:personnes,id',
             'numero_electeur' => 'required|string|unique:role_electeurs',
-            'a_voter' => 'boolean'
+            'a_voter' => 'boolean',
+             'liste_electorale_id' => 'sometimes|required|exists:listes_electorales,id'
         ]);
 
         if ($validator->fails()) {
@@ -41,21 +42,35 @@ class RoleElecteurController extends BaseController
         $validator = Validator::make($request->all(), [
             'personne_id' => 'sometimes|required|exists:personnes,id',
             'numero_electeur' => 'sometimes|required|string|unique:role_electeurs,numero_electeur,' . $electeur->id,
-            'a_voter' => 'boolean'
+            'a_voter' => 'boolean',
+            'liste_electorale_id' => 'sometimes|required|exists:liste_electorales,id'
         ]);
 
         if ($validator->fails()) {
             return $this->sendError('Erreur de validation', $validator->errors(), 422);
         }
 
-        $electeur->update($request->all());
-        return $this->sendResponse($electeur, 'Électeur mis à jour avec succès.');
-    }
+        // Vérifier si l'électeur est déjà inscrit sur une autre liste
+        if ($request->has('liste_electorale_id')) {
+            $existingInscription = RoleElecteur::where('id', '!=', $electeur->id)
+                ->where('liste_electorale_id', $request->liste_electorale_id)
+                ->exists();
 
-    public function destroy(RoleElecteur $electeur)
-    {
-        $electeur->delete();
-        return $this->sendResponse(null, 'Électeur supprimé avec succès.');
+            if ($existingInscription) {
+                return $this->sendError(
+                    'Erreur de validation',
+                    ['message' => 'Cet électeur est déjà inscrit sur une autre liste électorale.'],
+                    422
+                );
+            }
+        }
+
+        $electeur->update($request->all());
+
+        // Recharger l'électeur avec ses relations
+        $electeur->load(['personne', 'listeElectorale']);
+
+        return $this->sendResponse($electeur, 'Électeur mis à jour avec succès.');
     }
 
     public function verifierElecteur($numeroElecteur)

@@ -13,7 +13,8 @@ class RoleElecteur extends Model
     protected $fillable = [
         'personne_id',
         'numero_electeur',
-        'a_voter'
+        'a_voter',
+        'liste_electorale_id'
     ];
 
     protected $casts = [

@@ -10,6 +10,8 @@ class ListeElectorale extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'liste_electorales';
+
     protected $fillable = [
         'bureau_de_vote_id',
         'code',
